@@ -3,6 +3,13 @@ import { Inter, Anton } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
+import { headers } from "next/headers";
+
+import { cookieToInitialState } from "wagmi";
+
+import { config } from "@/utils/web3/config";
+import Web3ModalProvider from "./ClientProviders";
+
 const inter = Inter({ subsets: ["latin"] });
 const anton = Anton({
   subsets: ["latin"],
@@ -20,9 +27,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialState = cookieToInitialState(config, headers().get("cookie"));
   return (
     <html lang="en">
-      <body className={cn(inter.className, anton.variable)}>{children}</body>
+      <body className={cn(inter.className, anton.variable)}>
+        <Web3ModalProvider initialState={initialState}>
+          {children}
+        </Web3ModalProvider>
+      </body>
     </html>
   );
 }
