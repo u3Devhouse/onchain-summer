@@ -41,8 +41,9 @@ function Ad(props: AdPropsType) {
         <div className="text-sm text-gray-500">{props.creatorName}</div>
         <div>{props.terms}</div>
         <div className="flex flex-row items-center flex-wrap gap-1 pt-2">
-          {props.tags.map((tag) => (
-            <Badge variant={tag === "Approved" ? "default" : "outline"}>
+          {props.tags.map((tag,i) => (
+            <Badge variant={tag === "Approved" ? "default" : "outline"}
+              key={`${tag}-${i}`}>
               {tag}
             </Badge>
           ))}
