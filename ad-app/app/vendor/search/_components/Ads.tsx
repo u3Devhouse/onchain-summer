@@ -53,10 +53,11 @@ function Ad(props: AdPropsType) {
           <div className="text-sm text-gray-500">{props.creatorName}</div>
           <div>{props.terms}</div>
           <div className="flex flex-row items-center flex-wrap gap-1 py-2">
-            {props.tags.map((tag) => (
+            {props.tags.map((tag, index) => (
               <Badge
                 variant={tag === "Approved" ? "default" : "outline"}
                 className={cn(tag === "New" ? "bg-green-500 text-white" : "")}
+                key={`${tag}-${index}`}
               >
                 {tag}
               </Badge>
