@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,13 +9,46 @@ import ph3 from "@/public/placeholder/ph3.jpg";
 import ph4 from "@/public/placeholder/ph4.jpg";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { useReadContract, useWriteContract } from "wagmi";
+import AdLicensingABI from "@/lib/abi/AdLicensing";
+import { adLicensingContract } from "@/lib/contrats";
 
 export default function Ads() {
+  const { data } = useReadContract({
+    abi: AdLicensingABI,
+    address: adLicensingContract,
+    functionName: "getAllVendorAds",
+    args: ["0xf11176495d7370DB4d634eb1827dadDB919F62aA"],
+  });
+
+  const ads = data?.[0].map((id, idx) => {
+    const adData = data[1][idx];
+    const tags = [];
+    if (
+      adData.approvedTime === 0n && //No approved time
+      adData.creatorStatus === 0 && // Creator = NEW
+      adData.vendorStatus === 0 // Vendor = PENDING
+    )
+      tags.push("New");
+    if (adData.approvedTime > 0n && adData.vendorStatus === 1)
+      tags.push("Approved");
+    if (adData.vendorStatus === 2) tags.push("Rejected");
+    if (adData.vendorStatus === 3) tags.push("Review Terms");
+    if (adData.creatorStatus === 1) tags.push("Active");
+    if (adData.creatorStatus === 2) tags.push("Inactive");
+    if (adData.creatorStatus === 3) tags.push("Blocked");
+    if (adData.creatorStatus === 4) tags.push("Expired");
+
+    const idData = dummyData.find((d) => d.id === id);
+    if (!idData) return null;
+    return { ...idData, tags: tags };
+  });
   return (
     <section className="flex flex-row flex-wrap items-center justify-center gap-4 max-w-[1440px] pb-8">
-      {dummyData.map((d, i) => (
-        <Ad key={i} {...d} />
-      ))}
+      {ads?.map((d, i) => {
+        if (!d) return null;
+        return <Ad key={i} {...d} />;
+      })}
     </section>
   );
 }
@@ -31,11 +64,16 @@ type AdPropsType = {
 };
 
 function Ad(props: AdPropsType) {
-  const isNew = props.tags.includes("New");
-  const isPending = props.tags.includes("Pending");
+  const isPending =
+    props.tags.includes("Pending") || props.tags.includes("New");
   const isApproved = props.tags.includes("Approved");
   const isRejected = props.tags.includes("Rejected");
   const isActive = props.tags.includes("Active");
+
+  const { writeContract: rejectWrite, isPending: rejectLoading } =
+    useWriteContract();
+  const { writeContract, isPending: loading } = useWriteContract();
+
   return (
     <div className="rounded-3xl border-2 border-gray-500 px-4 py-4 flex flex-row items-stretch gap-2 w-[430px] max-w-[90vw] hover:drop-shadow-md">
       <Link href={`/vendor/ads/${props.id.toString()}`}>
@@ -66,22 +104,72 @@ function Ad(props: AdPropsType) {
           <div className="text-xs text-gray-500">{props.description}</div>
         </div>
         <div className="flex flex-row flex-wrap items-center gap-2 self-end w-full">
-          {isActive && (
-            <Button variant="outline" className="border-red-500 text-red-500">
-              Deactivate
+          {/* {isActive && (
+            <Button
+              variant="outline"
+              className="border-red-500 text-red-500"
+              disabled={loading}
+              onClick={() => {
+                writeContract({
+                  abi: AdLicensingABI,
+                  address: adLicensingContract,
+                  functionName: "updateVendorAdStatus",
+                  args: [props.id, 2],
+                });
+              }}
+            >
+              {loading ? "Deactivating..." : "Deactivate"}
+            </Button>
+          )} */}
+          {isApproved && (
+            <Button
+              variant="outline"
+              className="border-green-500 text-green-500"
+              onClick={() => {
+                writeContract({
+                  abi: AdLicensingABI,
+                  address: adLicensingContract,
+                  functionName: "getLicense",
+                  args: [props.id],
+                });
+              }}
+              disabled={loading}
+            >
+              {loading ? "Activating..." : "Activate"}
             </Button>
           )}
           {isPending && (
             <>
-              <Button variant="outline" className="border-red-500 text-red-500">
-                Reject
+              <Button
+                variant="outline"
+                className="border-red-500 text-red-500"
+                onClick={() => {
+                  rejectWrite({
+                    abi: AdLicensingABI,
+                    address: adLicensingContract,
+                    functionName: "updateVendorAdStatus",
+                    args: [props.id, 3],
+                  });
+                }}
+                disabled={rejectLoading || loading}
+              >
+                {rejectLoading ? "Rejecting..." : "Reject"}
               </Button>
 
               <Button
                 variant="outline"
                 className="border-green-500 text-green-500"
+                disabled={loading}
+                onClick={() => {
+                  writeContract({
+                    abi: AdLicensingABI,
+                    address: adLicensingContract,
+                    functionName: "updateVendorAdStatus",
+                    args: [props.id, 1],
+                  });
+                }}
               >
-                Approve
+                {loading ? "Approving..." : "Approve"}
               </Button>
             </>
           )}
