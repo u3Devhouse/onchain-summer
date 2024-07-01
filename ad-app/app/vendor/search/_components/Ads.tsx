@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,13 @@ export default function Ads() {
     if (!idData) return null;
     return { ...idData, tags: tags };
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 10_000);
+    return () => clearInterval(interval);
+  }, [refetch]);
   return (
     <section className="flex flex-row flex-wrap items-center justify-center gap-4 max-w-[1440px] pb-8">
       {ads?.map((d, i) => {
