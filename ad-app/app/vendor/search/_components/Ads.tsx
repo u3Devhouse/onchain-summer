@@ -9,12 +9,12 @@ import ph3 from "@/public/placeholder/ph3.jpg";
 import ph4 from "@/public/placeholder/ph4.jpg";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
-import { useReadContract, useWriteContract } from "wagmi";
+import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import AdLicensingABI from "@/lib/abi/AdLicensing";
 import { adLicensingContract } from "@/lib/contrats";
 
 export default function Ads() {
-  const { data } = useReadContract({
+  const { data, refetch } = useReadContract({
     abi: AdLicensingABI,
     address: adLicensingContract,
     functionName: "getAllVendorAds",
@@ -47,7 +47,7 @@ export default function Ads() {
     <section className="flex flex-row flex-wrap items-center justify-center gap-4 max-w-[1440px] pb-8">
       {ads?.map((d, i) => {
         if (!d) return null;
-        return <Ad key={i} {...d} />;
+        return <Ad key={i} {...d} refetch={refetch} />;
       })}
     </section>
   );
@@ -61,9 +61,20 @@ type AdPropsType = {
   description: string;
   terms: string;
   tags: string[];
+  refetch: () => void;
 };
 
 function Ad(props: AdPropsType) {
+  const { data } = useReadContracts({
+    contracts: [
+      {
+        abi: AdLicensingABI,
+        address: adLicensingContract,
+        functionName: "getCreator",
+        args: [props.id],
+      },
+    ],
+  });
   const isPending =
     props.tags.includes("Pending") || props.tags.includes("New");
   const isApproved = props.tags.includes("Approved");
@@ -88,7 +99,11 @@ function Ad(props: AdPropsType) {
       <div className="flex flex-col justify-between">
         <div>
           <div className="text-lg font-bold">{props.productName}</div>
-          <div className="text-sm text-gray-500">{props.creatorName}</div>
+          <div className="text-sm text-gray-500">
+            {data?.[0].result
+              ? `${data[0].result.slice(0, 4)}...${data[0].result.slice(-4)}`
+              : props.creatorName}
+          </div>
           <div>{props.terms}</div>
           <div className="flex flex-row items-center flex-wrap gap-1 py-2">
             {props.tags.map((tag, index) => (
@@ -126,12 +141,19 @@ function Ad(props: AdPropsType) {
               variant="outline"
               className="border-green-500 text-green-500"
               onClick={() => {
-                writeContract({
-                  abi: AdLicensingABI,
-                  address: adLicensingContract,
-                  functionName: "getLicense",
-                  args: [props.id],
-                });
+                writeContract(
+                  {
+                    abi: AdLicensingABI,
+                    address: adLicensingContract,
+                    functionName: "getLicense",
+                    args: [props.id],
+                  },
+                  {
+                    onSuccess: () => {
+                      props.refetch();
+                    },
+                  }
+                );
               }}
               disabled={loading}
             >
@@ -144,12 +166,19 @@ function Ad(props: AdPropsType) {
                 variant="outline"
                 className="border-red-500 text-red-500"
                 onClick={() => {
-                  rejectWrite({
-                    abi: AdLicensingABI,
-                    address: adLicensingContract,
-                    functionName: "updateVendorAdStatus",
-                    args: [props.id, 3],
-                  });
+                  rejectWrite(
+                    {
+                      abi: AdLicensingABI,
+                      address: adLicensingContract,
+                      functionName: "updateVendorAdStatus",
+                      args: [props.id, 3],
+                    },
+                    {
+                      onSuccess: () => {
+                        props.refetch();
+                      },
+                    }
+                  );
                 }}
                 disabled={rejectLoading || loading}
               >
@@ -161,12 +190,19 @@ function Ad(props: AdPropsType) {
                 className="border-green-500 text-green-500"
                 disabled={loading}
                 onClick={() => {
-                  writeContract({
-                    abi: AdLicensingABI,
-                    address: adLicensingContract,
-                    functionName: "updateVendorAdStatus",
-                    args: [props.id, 1],
-                  });
+                  writeContract(
+                    {
+                      abi: AdLicensingABI,
+                      address: adLicensingContract,
+                      functionName: "updateVendorAdStatus",
+                      args: [props.id, 1],
+                    },
+                    {
+                      onSuccess: () => {
+                        props.refetch();
+                      },
+                    }
+                  );
                 }}
               >
                 {loading ? "Approving..." : "Approve"}
