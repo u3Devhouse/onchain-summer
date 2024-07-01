@@ -12,7 +12,7 @@ import Link from "next/link";
 
 export default function Ads() {
   return (
-    <section className="flex flex-row flex-wrap items-center justify-center gap-4 max-w-[1440px]">
+    <section className="flex flex-row flex-wrap items-center justify-center gap-4 max-w-[1440px] pb-8">
       {dummyData.map((d, i) => (
         <Ad key={i} {...d} />
       ))}
@@ -113,8 +113,8 @@ const dummyData = [
   {
     id: 3n,
     image: ph3,
-    productName: "Product Name",
-    creatorName: "Creator Name",
+    productName: "Product Name#1",
+    creatorName: "Rev Track",
     description: "This is a description of the ad",
     terms: "1T - $50",
     tags: ["Approved", "Active"],
@@ -122,8 +122,8 @@ const dummyData = [
   {
     id: 4n,
     image: ph4,
-    productName: "Product Name",
-    creatorName: "Creator Name",
+    productName: "Product Name#2",
+    creatorName: "Namu Def",
     description: "This is a description of the ad",
     terms: "Terms",
     tags: ["Approved", "Active"],
