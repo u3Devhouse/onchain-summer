@@ -199,7 +199,7 @@ function Ad(props: AdPropsType) {
                       abi: AdLicensingABI,
                       address: adLicensingContract,
                       functionName: "updateVendorAdStatus",
-                      args: [props.id, 3],
+                      args: [props.id, 2],
                     },
                     {
                       onSuccess: () => {
