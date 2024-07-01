@@ -158,7 +158,7 @@ contract AdLicensing is IAdLicense, Ownable {
             revert AdLicensing__AdNotApproved();
         }
         CreatorStatus currentStatus = getCurrentAdStatus(_id);
-        if (currentStatus != CreatorStatus.BLOCKED) {
+        if (currentStatus == CreatorStatus.BLOCKED) {
             revert AdLicensing__AdBlockedByCreator();
         }
         currentAd.creatorStatus = CreatorStatus.ACTIVE;
@@ -185,7 +185,7 @@ contract AdLicensing is IAdLicense, Ownable {
             revert AdLicensing__AdAlreadyApproved();
         }
         CreatorStatus currentStatus = getCurrentAdStatus(_id);
-        if (currentStatus != CreatorStatus.BLOCKED) {
+        if (currentStatus == CreatorStatus.BLOCKED) {
             revert AdLicensing__AdBlockedByCreator();
         }
         emit VendorAdStatusChanged(
