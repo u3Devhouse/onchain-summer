@@ -115,7 +115,7 @@ function Ad(props: AdPropsType) {
 
   return (
     <div className="rounded-3xl border-2 border-gray-500 px-4 py-4 flex flex-row items-stretch gap-2 w-[430px] max-w-[90vw] hover:drop-shadow-md">
-      <Link href={`/vendor/ads/${props.id.toString()}`}>
+      <Link href={`/vendors/ads/${props.id.toString()}`}>
         <div className="w-48 h-48 bg-gray-500 rounded-xl flex items-center justify-center overflow-hidden">
           <Image
             src={props.image}
