@@ -11,7 +11,8 @@ import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import AdLicensingABI from "@/lib/abi/AdLicensing";
-import { adLicensingContract } from "@/lib/contrats";
+import { adLicensingContract, usdc } from "@/lib/contrats";
+import { erc20Abi } from "viem";
 
 export default function Ads() {
   const { data, refetch } = useReadContract({
@@ -21,8 +22,11 @@ export default function Ads() {
     args: ["0xf11176495d7370DB4d634eb1827dadDB919F62aA"],
   });
 
+  const { writeContract } = useWriteContract();
+
   const ads = data?.[0].map((id, idx) => {
     const adData = data[1][idx];
+    console.log({ id, adData });
     const tags = [];
     if (
       adData.approvedTime === 0n && //No approved time
@@ -30,7 +34,10 @@ export default function Ads() {
       adData.vendorStatus === 0 // Vendor = PENDING
     )
       tags.push("New");
-    if (adData.approvedTime > 0n && adData.vendorStatus === 1)
+    if (
+      // adData.approvedTime > 0n &&
+      adData.vendorStatus === 1
+    )
       tags.push("Approved");
     if (adData.vendorStatus === 2) tags.push("Rejected");
     if (adData.vendorStatus === 3) tags.push("Review Terms");
@@ -49,6 +56,20 @@ export default function Ads() {
         if (!d) return null;
         return <Ad key={i} {...d} refetch={refetch} />;
       })}
+      <div className="w-full flex items-center justify-center">
+        <Button
+          onClick={() => {
+            writeContract({
+              address: usdc,
+              abi: erc20Abi,
+              functionName: "approve",
+              args: [adLicensingContract, 1000_000000n],
+            });
+          }}
+        >
+          Approve USDC
+        </Button>
+      </div>
     </section>
   );
 }
@@ -199,7 +220,9 @@ function Ad(props: AdPropsType) {
                     },
                     {
                       onSuccess: () => {
-                        props.refetch();
+                        setTimeout(() => {
+                          props.refetch();
+                        }, 10_000);
                       },
                     }
                   );
