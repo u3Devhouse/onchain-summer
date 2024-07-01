@@ -7,7 +7,7 @@ import {AdLicensing, IAdLicense} from "../src/AdLicensing.sol";
 contract CreateAds is Script {
     function run() public {
         AdLicensing adLicensing = AdLicensing(
-            0x194dB537469Bf0b2215F1E796C8db1AF731dCc7f
+            0xfF500480aea2e19Ed26fE851f5F4b198558ea7Cb
         );
         vm.startBroadcast();
         adLicensing.createAd(
