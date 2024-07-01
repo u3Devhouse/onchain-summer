@@ -96,6 +96,11 @@ contract AdLicensing is IAdLicense, Ownable {
         if (_adTerms == AdTerms.SINGLE_PAYMENT_DURATION && duration < 15 days) {
             revert AdLicensing__InvalidDuration();
         }
+        if (_adTerms == AdTerms.REVSHARE) {
+            if (priceOrRevShare > 20_000) {
+                revert AdLicensing__InvalidRevshare();
+            }
+        }
         adStatus[_adId] = AdStatus({
             lastVendorEdit: block.timestamp,
             lastCreatorEdit: block.timestamp,

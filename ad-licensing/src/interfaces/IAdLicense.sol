@@ -133,4 +133,5 @@ interface IAdLicense {
     error AdLicensing__AdNotApproved();
     error AdLicensing__AdBlockedByCreator();
     error AdLicensing__NotConversionManager();
+    error AdLicensing__InvalidRevshare();
 }
