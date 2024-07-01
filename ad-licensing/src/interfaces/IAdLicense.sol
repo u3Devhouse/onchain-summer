@@ -26,6 +26,7 @@ interface IAdLicense {
         uint256 paymentTime;
         uint256 priceOrRevShare; // price in USDC or revshare in basis_points
         uint256 duration; // only used for SINGLE_PAYMENT_DURATION
+        bytes32 adHash;
         AdTerms terms;
         VendorStatus vendorStatus;
         CreatorStatus creatorStatus;
@@ -35,7 +36,7 @@ interface IAdLicense {
         bytes32 conversionHash;
         uint256 timeOfConversion;
         uint256 creatorRevenue;
-        bool reviewed;
+        bool paymentSuccessful;
     }
 
     // ===================================================
@@ -53,6 +54,11 @@ interface IAdLicense {
         VendorStatus new_status
     );
     event Conversion(uint256 indexed id, ConversionInfo info);
+    event AdLicensed(
+        uint256 indexed id,
+        address indexed vendor,
+        address indexed creator
+    );
 
     // ===================================================
     // Management Functions
@@ -72,25 +78,32 @@ interface IAdLicense {
      * @param _id The ID of the ad
      * @return The ID of the vendor
      */
-    function getVendorId(uint256 _id) external view returns (uint256);
+    function getVendor(uint256 _id) external view returns (address);
 
     /**
      * @param _id The ID of the ad
      * @return The ID of the creator
      */
-    function getCreatorId(uint256 _id) external view returns (uint256);
+    function getCreator(uint256 _id) external view returns (address);
 
     // ===================================================
     // Creator Functions
     // ===================================================
     /**
-     * @param _id The ID of the ad
+     * @param _vendor The address of the vendor
+     * @param _adHash The hash of the ad to tie in with the database
+     * @param priceOrRevShare The price in USDC wei or revshare in basis_points
+     * @param duration The duration of the ad in seconds
+     * @param _adTerms The terms of the ad
+     * @return _adId The ID of the ad
      */
-    function adCreated(
-        uint256 _id,
+    function createAd(
         address _vendor,
-        AdStatus calldata _status
-    ) external;
+        bytes32 _adHash,
+        uint priceOrRevShare,
+        uint duration,
+        AdTerms _adTerms
+    ) external returns (uint256 _adId);
 
     function updateAd(uint256 _id, AdStatus calldata _adInfo) external;
 
@@ -105,4 +118,19 @@ interface IAdLicense {
     function getLicense(uint256 _id) external;
 
     function approveAdAndGetLicense(uint256 _id) external;
+
+    // ===================================================
+    // Errors
+    // ===================================================
+    error AdLicensing__NotCreator();
+    error AdLicensing__NotVendor();
+    error AdLicensing__AdAlreadyApproved();
+    error AdLicensing__InvalidDuration();
+    error AdLicensing__AdAlreadyActive();
+    error AdLicensing__AdIsActive();
+    error AdLicensing__AdStatusAlreadySet();
+    error AdLicensing__InvalidVendorStatus();
+    error AdLicensing__AdNotApproved();
+    error AdLicensing__AdBlockedByCreator();
+    error AdLicensing__NotConversionManager();
 }
